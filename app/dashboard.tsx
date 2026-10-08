@@ -97,7 +97,7 @@ export default function Dashboard({initial,initialError}:{initial:RatesResult;in
     <AccordionItem value="updates"><AccordionTrigger>كيف يتم تحديث أسعار بغداد وأربيل والبصرة؟</AccordionTrigger><AccordionContent>تُجلب الأسعار من المصدر نفسه المستخدم في الموقع الأصلي، والمنسوب إلى بورصة العراق. يعيد الموقع جلب البيانات كل ساعة أثناء فتحه، ويمكن تحديثها يدويًا. وقت آخر تحديث هو وقت القراءة التي يرسلها المصدر، وليس وقت فتح الصفحة.</AccordionContent></AccordionItem>
     <AccordionItem value="history"><AccordionTrigger>كيف أراجع أسعار الأشهر السابقة؟</AccordionTrigger><AccordionContent>استخدم أزرار الشهر في قسم حركة الأسعار، ثم اختر سعر البيع أو الشراء والسوق المطلوب. يعرض المخطط القراءات المتاحة في المصدر؛ وإذا لم تتوفر بيانات لشهر معيّن فستظهر رسالة توضح ذلك.</AccordionContent></AccordionItem>
    </Accordion></section>
-   <footer><div className="footer-brand"><span aria-hidden="true">$</span> دولار العراق <em>/</em><span>متابعة أسعار الأسواق العراقية</span></div><div>المصدر: <a href="https://gallery.a9ii.com/usd/" target="_blank" rel="noreferrer">بورصة العراق</a><i aria-hidden="true"/>تحديث تلقائي كل ساعة</div></footer>
+   <footer><div className="footer-brand"><span aria-hidden="true">$</span> دولار العراق <em>/</em><span>متابعة أسعار الأسواق العراقية</span></div><div>المصدر: <a href="https://iraqborsa.com/" target="_blank" rel="noreferrer">بورصة العراق</a><i aria-hidden="true"/>تحديث تلقائي كل ساعة</div></footer>
   </main>
  </div>;
 }

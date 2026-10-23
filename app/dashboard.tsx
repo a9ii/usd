@@ -16,7 +16,7 @@ function Delta({value}:{value:number|null}) {
  return <span className={`delta ${value===0||value==null?'neutral':value>0?'up':'down'}`} aria-label={value==null?'لا توجد قراءة سابقة':value===0?'بدون تغيير':`${value>0?'ارتفاع':'انخفاض'} ${fmt(Math.abs(value))} دينار`}><Icon size={14} aria-hidden="true"/><b dir="ltr">{value==null?'—':value===0?'ثابت':`${value>0?'+':''}${fmt(value)}`}</b></span>;
 }
 async function fetchMonth(month:string,signal:AbortSignal):Promise<RatesResult> {
- const response=await fetch('/api/rates?month='+month,{signal});
+ const response=await fetch('https://gallery.a9ii.com/usd/api/rates/history?month='+month,{signal});
  if(!response.ok)throw new Error('تعذر الاتصال بالمصدر');
  const json=await response.json() as RatesResult;
  return {...json,data:normalizeRates(json,month)};

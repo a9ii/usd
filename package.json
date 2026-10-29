@@ -14,7 +14,7 @@
     "db:generate": "drizzle-kit generate",
     "build:pages": "node scripts/build-pages.mjs",
     "preview:pages": "wrangler pages dev pages-dist",
-    "deploy:pages": "wrangler pages deploy pages-dist"
+    "deploy:pages": "wrangler pages deploy pages-dist",
     "build:vps": "node scripts/set-site-url.mjs && DEPLOY_TARGET=vps vite build --config vite.config.vps.ts"
   },
   "dependencies": {

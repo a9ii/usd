@@ -1,3 +1,4 @@
+
 FROM node:24-alpine AS base
 
 WORKDIR /app
@@ -10,24 +11,27 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
 
-# Build production application without code audits
+# Production build
 FROM base AS build
-
-COPY . .
 
 ARG SITE_URL
 
 ENV SITE_URL=${SITE_URL}
 ENV DEPLOY_TARGET=vps
 
+COPY . .
+
 RUN if [ -f wrangler.jsonc ]; then \
       mv wrangler.jsonc wrangler.jsonc.cloudflare-disabled; \
     fi \
-    && pnpm run build:vps
+    && pnpm run build:vps \
+    && test -f dist/server/index.js \
+    && test -f dist/server/ssr/index.js \
+    && test -d dist/client
 
 
 # Production runtime
-FROM node:24-alpine AS runtime
+FROM base AS runtime
 
 WORKDIR /app
 
@@ -35,8 +39,8 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
-COPY --from=build --chown=node:node \
-    /app/dist/standalone ./dist/standalone
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --chown=node:node server.mjs ./server.mjs
 
 USER node
 
@@ -47,6 +51,6 @@ HEALTHCHECK \
     --timeout=5s \
     --start-period=20s \
     --retries=3 \
-    CMD node -e "fetch('http://127.0.0.1:3000/robots.txt').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+    CMD node -e "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
-CMD ["node", "dist/standalone/server.js"]
+CMD ["node", "server.mjs"]

@@ -20,7 +20,10 @@ ARG SITE_URL
 ENV SITE_URL=${SITE_URL}
 ENV DEPLOY_TARGET=vps
 
-RUN pnpm run build:vps
+RUN if [ -f wrangler.jsonc ]; then \
+      mv wrangler.jsonc wrangler.jsonc.cloudflare-disabled; \
+    fi \
+    && pnpm run build:vps
 
 
 # Production runtime

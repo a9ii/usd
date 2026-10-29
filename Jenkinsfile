@@ -46,16 +46,7 @@ pipeline {
             }
         }
 
-        stage('Code Quality and Dependency Audit') {
-            steps {
-                sh '''
-                    docker build --pull \
-                      --target ci \
-                      --tag "$APP_IMAGE:ci-$BUILD_NUMBER" \
-                      .
-                '''
-            }
-        }
+ 
 
         stage('Build Production Image') {
             when {

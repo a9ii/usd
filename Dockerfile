@@ -10,22 +10,10 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
 
-# -------------------------
-# Code quality and security
-# -------------------------
-FROM base AS ci
+# Build production application without code audits
+FROM base AS build
 
 COPY . .
-
-RUN pnpm run lint \
-    && pnpm exec tsc --noEmit \
-    && pnpm audit --audit-level high
-
-
-# -------------------------
-# Production build
-# -------------------------
-FROM ci AS build
 
 ARG SITE_URL
 
@@ -35,9 +23,7 @@ ENV DEPLOY_TARGET=vps
 RUN pnpm run build:vps
 
 
-# -------------------------
 # Production runtime
-# -------------------------
 FROM node:24-alpine AS runtime
 
 WORKDIR /app

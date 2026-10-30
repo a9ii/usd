@@ -51,9 +51,23 @@ const monthCache = useRef(
   finally {if(!controller.signal.aborted)setBusy(false);}
  },[]);
  useEffect(()=>{
-  try {setDark(localStorage.getItem('iraq-theme')==='dark');}catch{}
-  setNow(Date.now());
-  if(!initial.data.length)void refresh();
+try {
+  setDark(localStorage.getItem('iraq-theme') === 'dark');
+} catch {}
+
+setNow(Date.now());
+
+// Detect the actual month in Baghdad at page load.
+const actualMonth = currentMonth();
+
+if (actualMonth !== initial.month) {
+  setMonth(actualMonth);
+}
+
+// Fetch real rates directly from the external API.
+if (!initial.data.length) {
+  void refresh();
+}
   const clock=setInterval(()=>setNow(Date.now()),60000);
   const timer=setInterval(()=>{if(document.visibilityState==='visible')void refresh()},3600000);
   const visible=()=>{if(document.visibilityState==='visible'){setNow(Date.now());void refresh();}};

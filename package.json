@@ -1,3 +1,4 @@
+
 {
   "name": "iraq-usd-site",
   "version": "0.1.0",
@@ -12,7 +13,7 @@
     "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "build:pages": "node scripts/build-pages.mjs",
+    "build:pages": "node scripts/build-static-pages.mjs",
     "preview:pages": "wrangler pages dev pages-dist",
     "deploy:pages": "wrangler pages deploy pages-dist",
     "build:vps": "node scripts/set-site-url.mjs && DEPLOY_TARGET=vps vite build --config vite.config.vps.ts"
@@ -54,7 +55,7 @@
     "@vitejs/plugin-rsc": "0.5.26",
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
-   "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.3",
     "json-rpc-2.0": "1.7.1",
     "raw-body": "3.0.2",
     "react-server-dom-webpack": "19.2.6",

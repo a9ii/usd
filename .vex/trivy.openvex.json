@@ -1,0 +1,9 @@
+
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/a9ii/usd/security/vex/1",
+  "author": "a9ii/usd maintainers",
+  "timestamp": "2026-10-30T00:00:00Z",
+  "version": 1,
+  "statements": []
+}

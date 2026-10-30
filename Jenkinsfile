@@ -26,7 +26,7 @@ pipeline {
         APP_NAME = 'usd-site'
 
         // IMPORTANT: Replace with your real HTTPS domain.
-        SITE_URL = 'https://YOUR_DOMAIN'
+        SITE_URL = 'https://usd.a0i.me'
 
         HOST_PORT = '3000'
         BIND_IP = '127.0.0.1'

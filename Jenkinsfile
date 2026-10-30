@@ -1,7 +1,10 @@
+
 pipeline {
     agent any
 
     options {
+        skipDefaultCheckout(true)
+
         buildDiscarder(
             logRotator(
                 numToKeepStr: '3',
@@ -14,7 +17,6 @@ pipeline {
         timeout(time: 45, unit: 'MINUTES')
     }
 
-    // Fallback polling. A GitHub webhook is faster.
     triggers {
         pollSCM('H/2 * * * *')
     }
@@ -23,7 +25,7 @@ pipeline {
         APP_IMAGE = 'usd-site'
         APP_NAME = 'usd-site'
 
-        // Replace with your actual HTTPS domain.
+        // IMPORTANT: Replace with your real HTTPS domain.
         SITE_URL = 'https://YOUR_DOMAIN'
 
         HOST_PORT = '3000'
@@ -33,20 +35,59 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Checkout GitHub') {
             steps {
                 checkout scm
 
                 sh '''
+                    set -eu
+
+                    echo "=== Git Commit ==="
                     git rev-parse HEAD
                     git --no-pager log -1 --oneline
+
+                    echo "=== Docker ==="
                     docker --version
+
+                    echo "=== Trivy ==="
                     trivy --version
                 '''
             }
         }
 
- 
+        stage('Validate Deployment Settings') {
+            when {
+                branch 'main'
+            }
+
+            steps {
+                sh '''
+                    set -eu
+
+                    case "$SITE_URL" in
+                        https://YOUR_DOMAIN|https://your_domain)
+                            echo "ERROR: Set a real SITE_URL in Jenkinsfile."
+                            exit 1
+                            ;;
+                        https://*)
+                            echo "SITE_URL: $SITE_URL"
+                            ;;
+                        *)
+                            echo "ERROR: SITE_URL must use HTTPS."
+                            exit 1
+                            ;;
+                    esac
+
+                    test -f Dockerfile
+                    test -f server.mjs
+                    test -f pnpm-lock.yaml
+                    test -s .vex/trivy.openvex.json
+                    test -f scripts/deploy-vps.sh
+                    test -f scripts/trivy-security-gate.sh
+                '''
+            }
+        }
 
         stage('Build Production Image') {
             when {
@@ -55,6 +96,8 @@ pipeline {
 
             steps {
                 sh '''
+                    set -eu
+
                     docker build --pull \
                       --build-arg SITE_URL="$SITE_URL" \
                       --label "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
@@ -65,19 +108,31 @@ pipeline {
             }
         }
 
-        stage('Docker Image Security Scan') {
+        stage('Trivy Security Gate') {
             when {
                 branch 'main'
             }
 
             steps {
                 sh '''
-                    trivy image \
-                      --ignore-unfixed \
-                      --exit-code 1 \
-                      --severity HIGH,CRITICAL \
-                      "$APP_IMAGE:release-$BUILD_NUMBER"
+                    set -eu
+
+                    IMAGE_TO_SCAN="$APP_IMAGE:release-$BUILD_NUMBER" \
+                    NODE_LOCKFILE="pnpm-lock.yaml" \
+                    TRIVY_VEX_FILE=".vex/trivy.openvex.json" \
+                    TRIVY_REPORT_DIR="trivy-reports" \
+                    bash scripts/trivy-security-gate.sh
                 '''
+            }
+
+            post {
+                always {
+                    archiveArtifacts(
+                        artifacts: 'trivy-reports/*.json',
+                        allowEmptyArchive: true,
+                        fingerprint: true
+                    )
+                }
             }
         }
 
@@ -88,6 +143,8 @@ pipeline {
 
             steps {
                 sh '''
+                    set -eu
+
                     APP_IMAGE="$APP_IMAGE" \
                     APP_NAME="$APP_NAME" \
                     BUILD_NUMBER="$BUILD_NUMBER" \
@@ -109,6 +166,8 @@ pipeline {
 
             steps {
                 sh '''
+                    set -eu
+
                     docker image ls "$APP_IMAGE" \
                       --format '{{.Tag}}' \
                       | grep -E '^release-[0-9]+$' \
@@ -116,9 +175,10 @@ pipeline {
                       | sort -nr \
                       | tail -n +4 \
                       | while IFS= read -r old; do
-                          [ -n "$old" ] && \
-                            docker image rm "$APP_IMAGE:release-$old" \
-                            || true
+                          if [ -n "$old" ]; then
+                            docker image rm \
+                              "$APP_IMAGE:release-$old" || true
+                          fi
                         done
                 '''
             }
@@ -128,7 +188,6 @@ pipeline {
     post {
         always {
             script {
-                // Failed candidates must not displace rollback releases.
                 if (env.DEPLOY_SUCCEEDED != 'true') {
                     sh '''
                         docker image rm \
@@ -138,21 +197,17 @@ pipeline {
                 }
             }
 
-            sh '''
-                docker image rm \
-                  "$APP_IMAGE:ci-$BUILD_NUMBER" \
-                  >/dev/null 2>&1 || true
-            '''
-
             deleteDir()
         }
 
         success {
             echo 'Pipeline completed successfully.'
+            echo 'Production deployment verified.'
         }
 
         failure {
-            echo 'Pipeline failed. Check logs and rollback status.'
+            echo 'Pipeline failed.'
+            echo 'Check build, security gate or deployment logs.'
         }
     }
 }

@@ -36,7 +36,13 @@ export default function Dashboard({initial,initialError}:{initial:RatesResult;in
  const [retry,setRetry]=useState(0);
  const [now,setNow]=useState(0);
  const latestController=useRef<AbortController|null>(null);
- const monthCache=useRef(new Map([[initial.month,initial]]));
+const monthCache = useRef(
+  new Map<string, RatesResult>(
+    initial.data.length
+      ? [[initial.month, initial]]
+      : []
+  )
+);
  const refresh=useCallback(async()=>{
   latestController.current?.abort();const controller=new AbortController();latestController.current=controller;
   setBusy(true);setError('');

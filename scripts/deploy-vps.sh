@@ -32,10 +32,11 @@ start_container() {
     "$image" >/dev/null
 }
 
+
 wait_healthy() {
   for attempt in {1..20}; do
     if curl -fsS --max-time 3 \
-      "http://127.0.0.1:${HOST_PORT}/robots.txt" \
+      "http://127.0.0.1:${HOST_PORT}/" \
       >/dev/null; then
       return 0
     fi
@@ -45,6 +46,7 @@ wait_healthy() {
 
   return 1
 }
+
 
 rollback() {
   echo "Attempting rollback..."
